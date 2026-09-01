@@ -21,16 +21,17 @@
       align-items: center; justify-content: center;
     }
     
-    /* 表层 - 隐藏文字 */
+    /* 表层 - 半透明深色，几乎不可见 */
     .surface-text {
       font-size: clamp(48px, 10vw, 120px);
       font-weight: 700; letter-spacing: -0.02em;
-      color: #1a1a1e; /* 几乎看不见 */
+      color: rgba(26, 26, 30, 0.15); /* 极度淡化 */
+      transition: color 0.3s ease;
     }
     
-    /* 底层 - 光圈揭示 */
+    /* 底层 - 光圈揭示，明亮清晰 */
     .underlying {
-      background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 50%), transparent 0%, rgba(5,5,7,0.98) 100%);
+      background: radial-gradient(circle 300px at var(--mx, 50%) var(--my, 50%), transparent 0%, rgba(5,5,7,0.97) 100%);
     }
     
     .underlying h1 {
@@ -38,17 +39,25 @@
       font-weight: 700; letter-spacing: -0.02em;
       background: linear-gradient(135deg, #00d992, #00b4d8);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 30px rgba(0, 217, 146, 0.5)); /* 增强发光 */
     }
     
-    .underlying p { margin-top: 20px; font-size: 20px; color: #6b6b78; }
+    .underlying p { 
+      margin-top: 20px; 
+      font-size: 22px; 
+      color: rgba(168, 168, 176, 0.9); /* 更明亮的副标题 */
+      text-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
+    }
     
-    /* 光圈边框 */
+    /* 光圈边框 - 更明显的绿色光晕 */
     .cursor-circle {
-      position: fixed; width: 180px; height: 180px;
-      border: 2px solid rgba(0, 217, 146, 0.4);
+      position: fixed; width: 200px; height: 200px;
+      border: 2px solid rgba(0, 217, 146, 0.6);
       border-radius: 50%; pointer-events: none;
       transform: translate(-50%, -50%);
       z-index: 1001; mix-blend-mode: screen;
+      box-shadow: 0 0 40px rgba(0, 217, 146, 0.3),
+                  inset 0 0 40px rgba(0, 217, 146, 0.1);
     }
     
     .hint {
@@ -72,10 +81,10 @@
   
   <section class="landing" id="landing">
     <div class="layer">
-      <div class="surface-text">dMo1</div>
+      <div class="surface-text">I'm deMo1</div>
     </div>
     <div class="layer underlying" id="underlying">
-      <h1>段默文</h1>
+      <h1>我是段默文</h1>
       <p>C++ 后端开发者</p>
     </div>
     <div class="hint">点击任意位置进入网站 ↓</div>
@@ -91,7 +100,7 @@
       cursor.style.left = e.clientX + 'px';
       cursor.style.top = e.clientY + 'px';
       underlying.style.background = 
-        `radial-gradient(circle 280px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.98) 100%)`;
+        `radial-gradient(circle 300px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.97) 100%)`;
     });
     
     // 点击淡出
