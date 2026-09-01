@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>段默文 - 主页</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { overflow: hidden; font-family: 'Inter', sans-serif; background: #050507; color: #f0f0f2; }
+    
+    .landing {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #050507; z-index: 1000;
+      cursor: pointer;
+    }
+    
+    /* 双层效果 */
+    .layer {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    
+    /* 表层 - 深色 */
+    .surface-text {
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 700; letter-spacing: -0.02em;
+      color: #1a1a1e;
+    }
+    
+    /* 底层 - 光圈揭示 */
+    .underlying {
+      background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 50%), transparent 0%, rgba(5,5,7,0.98) 100%);
+    }
+    
+    .underlying h1 {
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #00d992, #00b4d8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .underlying p { margin-top: 20px; font-size: 20px; color: #6b6b78; }
+    
+    /* 光圈边框 */
+    .cursor-circle {
+      position: fixed; width: 180px; height: 180px;
+      border: 2px solid rgba(0, 217, 146, 0.4);
+      border-radius: 50%; pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+      mix-blend-mode: screen;
+    }
+    
+    .hint {
+      position: absolute; bottom: 50px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px; color: #6b6b78;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    
+    /* 淡出 */
+    .landing.exit { animation: fadeExit 0.5s forwards; }
+    @keyframes fadeExit { to { opacity: 0; visibility: hidden; } }
+    
+    /* 下拉 */
+    .landing.pull-up { animation: pullUp 0.7s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+    @keyframes pullUp {
+      0% { transform: translateY(0) scaleY(1); opacity: 1; }
+      100% { transform: translateY(-100%) scaleY(0.95); opacity: 0; visibility: hidden; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor-circle" id="cursor"></div>
+  
+  <section class="landing" id="landing">
+    <div class="layer">
+      <div class="surface-text">dMo1</div>
+    </div>
+    <div class="layer underlying" id="underlying">
+      <h1>段默文</h1>
+      <p>C++ 后端开发者</p>
+    </div>
+    <div class="hint">点击任意位置进入网站 ↓</div>
+  </section>
+
+  <script>
+    const cursor = document.getElementById('cursor');
+    const underlying = document.getElementById('underlying');
+    const landing = document.getElementById('landing');
+    
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+      underlying.style.background = 
+        `radial-gradient(circle 280px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.98) 100%)`;
+    });
+    
+    landing.addEventListener('click', () => {
+      landing.classList.add('exit');
+      setTimeout(() => {
+        landing.style.display = 'none';
+        window.location.href = 'index.html#main';
+      }, 500);
+    });
+  </script>
+</body>
+</html>

@@ -532,6 +532,49 @@
     }
     .footer a { color: var(--accent-green); text-decoration: none; }
 
+    /* ─── Landing Overlay ─── */
+    .landing-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+      background: #050507;
+      transform: translateY(-100%);
+      opacity: 0; visibility: hidden;
+      transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1),
+                  opacity 0.4s ease;
+      cursor: pointer;
+    }
+    .landing-overlay.visible {
+      transform: translateY(0);
+      opacity: 1; visibility: visible;
+    }
+    .landing-overlay .layer {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .landing-overlay .surface-text {
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 700; letter-spacing: -0.02em;
+      color: #1a1a1e;
+    }
+    .landing-overlay .underlying-layer {
+      background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 50%), transparent 0%, rgba(5,5,7,0.98) 100%);
+    }
+    .landing-overlay .underlying-layer h1 {
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #00d992, #00b4d8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .landing-overlay .underlying-layer p { margin-top: 20px; font-size: 20px; color: #6b6b78; }
+    .cursor-circle {
+      position: fixed; width: 180px; height: 180px;
+      border: 2px solid rgba(0, 217, 146, 0.4);
+      border-radius: 50%; pointer-events: none;
+      transform: translate(-50%, -50%); z-index: 2001;
+      mix-blend-mode: screen; display: none;
+    }
+
     /* Animations */
     .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s; }
     .fade-in.visible { opacity: 1; transform: translateY(0); }
@@ -633,6 +676,17 @@
     </div>
   </section>
 
+  <!-- Landing Overlay (下拉式首页) -->
+  <div class="landing-overlay" id="landingOverlay">
+    <div class="layer">
+      <div class="surface-text">dMo1</div>
+    </div>
+    <div class="layer underlying-layer" id="underlyingLayer">
+      <h1>段默文</h1>
+      <p>C++ 后端开发者</p>
+    </div>
+  </div>
+
   <!-- Stats -->
   <div class="container">
     <div class="stats fade-in">
@@ -644,7 +698,6 @@
   </div>
 
   <!-- About -->
-  <section id="about" class="section">
     <div class="container">
       <div class="about-grid">
         <div class="about-content fade-in">
@@ -818,43 +871,58 @@
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
 
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'dark';
     html.setAttribute('data-theme', savedTheme);
 
     themeToggle.addEventListener('click', () => {
-      const current = html.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
     });
 
-    // ─── Spotlight Effect ───
-    const spotlight = document.getElementById('spotlight');
-    const spotlightReveal = document.getElementById('spotlightReveal');
-    const cursor = document.getElementById('cursor');
+    // ─── Landing Overlay Logic ───
+    const landingOverlay = document.getElementById('landingOverlay');
+    const underlyingLayer = document.getElementById('underlyingLayer');
+    const cursorCircle = document.getElementById('cursor');
+    let lastScrollY = 0;
+    let isLandingVisible = false;
 
-    document.addEventListener('mousemove', (e) => {
-      // Update custom cursor
-      if (cursor) {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top = e.clientY + 'px';
-      }
+    // 鼠标移动更新光圈位置
+    document.addEventListener('mousemove', e => {
+      underlyingLayer.style.background = 
+        `radial-gradient(circle 280px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.98) 100%)`;
 
-      // Update spotlight position
-      if (spotlight && spotlightReveal) {
-        const rect = spotlight.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        spotlightReveal.style.setProperty('--x', x + '%');
-        spotlightReveal.style.setProperty('--y', y + '%');
+      // 显示光标圆圈
+      if (isLandingVisible && cursorCircle) {
+        cursorCircle.style.display = 'block';
+        cursorCircle.style.left = e.clientX + 'px';
+        cursorCircle.style.top = e.clientY + 'px';
+      } else if (cursorCircle) {
+        cursorCircle.style.display = 'none';
       }
     });
 
-    // Hover effects for cursor
-    document.querySelectorAll('a, button, .project-card, .skill-card').forEach(el => {
-      el.addEventListener('mouseenter', () => cursor && cursor.classList.add('hover'));
-      el.addEventListener('mouseleave', () => cursor && cursor.classList.remove('hover'));
+    // 点击首页淡出
+    landingOverlay.addEventListener('click', () => {
+      landingOverlay.classList.remove('visible');
+      isLandingVisible = false;
+    });
+
+    // 滚动监听
+    window.addEventListener('scroll', () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY && currentScrollY > 50 && !isLandingVisible) {
+        // 向上滚动 - 显示首页
+        isLandingVisible = true;
+        landingOverlay.classList.add('visible');
+      } else if (currentScrollY <= 0 && isLandingVisible) {
+        // 已在顶部 - 隐藏首页
+        isLandingVisible = false;
+        landingOverlay.classList.remove('visible');
+      }
+
+      lastScrollY = currentScrollY;
     });
 
     // ─── Intersection Observer for fade-in ───
