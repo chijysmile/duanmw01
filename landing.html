@@ -21,12 +21,14 @@
       align-items: center; justify-content: center;
     }
     
+    /* 表层 - 隐藏文字 */
     .surface-text {
       font-size: clamp(48px, 10vw, 120px);
       font-weight: 700; letter-spacing: -0.02em;
-      color: #1a1a1e; /* 几乎看不见，与背景融合 */
+      color: #1a1a1e; /* 几乎看不见 */
     }
     
+    /* 底层 - 光圈揭示 */
     .underlying {
       background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 50%), transparent 0%, rgba(5,5,7,0.98) 100%);
     }
@@ -40,6 +42,7 @@
     
     .underlying p { margin-top: 20px; font-size: 20px; color: #6b6b78; }
     
+    /* 光圈边框 */
     .cursor-circle {
       position: fixed; width: 180px; height: 180px;
       border: 2px solid rgba(0, 217, 146, 0.4);

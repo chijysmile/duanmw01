@@ -636,13 +636,7 @@
       <div class="hero-grid">
         <div class="hero-content fade-in">
           <div class="hero-badge">C++ 后端开发者</div>
-
-          <!-- Spotlight Text Area -->
-          <div class="spotlight-container" id="spotlight">
-            <div class="spotlight-base">I'm dMo1</div>
-            <div class="spotlight-reveal" id="spotlightReveal">我是段默文</div>
-          </div>
-
+          <h1 class="hero-title">你好，我是<br><span class="gradient">段默文</span></h1>
           <p class="hero-subtitle">
             汕头大学计算机科学与技术专业在读<br>
             专注于高性能系统、网络编程与并发架构
@@ -684,6 +678,7 @@
 
   <!-- Landing Overlay (下拉式首页) -->
   <div class="landing-overlay" id="landingOverlay">
+    <div class="cursor-circle" id="cursorCircle"></div>
     <div class="layer">
       <div class="surface-text">dMo1</div>
     </div>
@@ -694,7 +689,8 @@
     <div class="hint">点击任意位置进入网站 ↑</div>
   </div>
 
-  <!-- Stats -->
+  <!-- Main Content -->
+  <div id="main-content">
   <div class="container">
     <div class="stats fade-in">
       <div class="stat-item"><div class="stat-num" data-target="1000">0</div><div class="stat-label">算法题</div></div>
@@ -874,6 +870,8 @@
     </div>
   </footer>
 
+  </div> <!-- end main-content -->
+
   <script>
     // ─── Theme Toggle ───
     const themeToggle = document.getElementById('themeToggle');
@@ -891,10 +889,9 @@
     // ─── Landing Overlay Logic ───
     const landingOverlay = document.getElementById('landingOverlay');
     const underlyingLayer = document.getElementById('underlyingLayer');
-    const cursorCircle = document.getElementById('cursor');
+    const cursorCircle = document.getElementById('cursorCircle');
     let lastScrollY = 0;
     let isLandingVisible = false;
-    let isAtTop = false;
 
     // 鼠标移动更新光圈位置
     document.addEventListener('mousemove', e => {
@@ -912,28 +909,29 @@
     });
 
     // 点击首页淡出
-    if (landingOverlay) {
-      landingOverlay.addEventListener('click', () => {
-        landingOverlay.classList.remove('visible');
-        isLandingVisible = false;
-        if (cursorCircle) cursorCircle.style.display = 'none';
-      });
-    }
+    landingOverlay.addEventListener('click', () => {
+      landingOverlay.classList.remove('visible');
+      isLandingVisible = false;
+      if (cursorCircle) cursorCircle.style.display = 'none';
+    });
 
     // 滚动监听 - 只有从顶部继续上滑时才触发
     window.addEventListener('scroll', () => {
       const currentScrollY = window.scrollY;
-      isAtTop = currentScrollY === 0;
 
-      if (currentScrollY < lastScrollY && isAtTop && !isLandingVisible) {
-        // 向上滚动且在顶部 - 显示首页
-        isLandingVisible = true;
-        landingOverlay && landingOverlay.classList.add('visible');
-      } else if (currentScrollY > lastScrollY && isLandingVisible) {
-        // 向下滚动 - 隐藏首页
-        isLandingVisible = false;
-        landingOverlay && landingOverlay.classList.remove('visible');
-        if (cursorCircle) cursorCircle.style.display = 'none';
+      if (!isLandingVisible) {
+        // 首页未显示时：向上滚动到顶部且继续上滑
+        if (currentScrollY < lastScrollY && currentScrollY === 0) {
+          isLandingVisible = true;
+          landingOverlay.classList.add('visible');
+        }
+      } else {
+        // 首页显示时：向下滚动则收起
+        if (currentScrollY > lastScrollY) {
+          isLandingVisible = false;
+          landingOverlay.classList.remove('visible');
+          cursorCircle.style.display = 'none';
+        }
       }
 
       lastScrollY = currentScrollY;
