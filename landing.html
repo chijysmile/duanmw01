@@ -21,21 +21,27 @@
       align-items: center; justify-content: center;
     }
     
-    /* 表层 - 完全隐藏，只保留极淡的轮廓 */
+    /* 表层 - 完全可见 */
     .surface-text {
       font-size: clamp(48px, 10vw, 120px);
       font-weight: 700; letter-spacing: -0.02em;
-      color: rgba(255, 255, 255, 0.03); /* 几乎完全透明 */
-      text-shadow: none;
-      transition: all 0.3s ease;
+      color: #f0f0f2; /* 明亮的白色 */
     }
     
-    /* 底层 - 光圈揭示，明亮清晰 */
+    /* 底层 - 光圈揭示，圆圈外完全隐藏 */
     .underlying {
-      background: radial-gradient(circle 320px at var(--mx, 50%) var(--my, 50%), 
+      background: radial-gradient(circle 250px at var(--mx, 50%) var(--my, 50%), 
         transparent 0%, 
-        rgba(5, 5, 7, 0.95) 40%,
-        rgba(5, 5, 7, 0.99) 100%);
+        rgba(5,5,7,0.98) 70%,
+        rgba(5,5,7,1) 100%);
+      -webkit-mask-image: radial-gradient(circle 250px at var(--mx, 50%) var(--my, 50%), 
+        black 0%, 
+        transparent 70%,
+        transparent 100%);
+      mask-image: radial-gradient(circle 250px at var(--mx, 50%) var(--my, 50%), 
+        black 0%, 
+        transparent 70%,
+        transparent 100%);
     }
     
     .underlying h1 {
@@ -43,34 +49,25 @@
       font-weight: 700; letter-spacing: -0.02em;
       background: linear-gradient(135deg, #00d992, #00b4d8);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 40px rgba(0, 217, 146, 0.6))
-             drop-shadow(0 0 80px rgba(0, 180, 216, 0.3));
+      filter: drop-shadow(0 0 30px rgba(0, 217, 146, 0.6));
     }
     
     .underlying p { 
       margin-top: 24px; 
-      font-size: 24px; 
-      color: rgba(240, 240, 242, 0.95);
-      text-shadow: 0 0 30px rgba(0, 217, 146, 0.5);
-      font-weight: 300;
-      letter-spacing: 0.05em;
+      font-size: 22px; 
+      color: rgba(240, 240, 242, 0.9);
+      text-shadow: 0 0 20px rgba(0, 217, 146, 0.4);
     }
     
-    /* 光圈边框 - 明显的绿色光晕 */
+    /* 光圈边框 */
     .cursor-circle {
-      position: fixed; width: 220px; height: 220px;
-      border: 2px solid rgba(0, 217, 146, 0.7);
+      position: fixed; width: 200px; height: 200px;
+      border: 2px solid rgba(0, 217, 146, 0.5);
       border-radius: 50%; pointer-events: none;
       transform: translate(-50%, -50%);
       z-index: 1001; mix-blend-mode: screen;
-      box-shadow: 0 0 50px rgba(0, 217, 146, 0.4),
-                  inset 0 0 50px rgba(0, 217, 146, 0.15);
-      animation: glow 2s ease-in-out infinite;
-    }
-    
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 50px rgba(0, 217, 146, 0.4), inset 0 0 50px rgba(0, 217, 146, 0.15); }
-      50% { box-shadow: 0 0 70px rgba(0, 217, 146, 0.6), inset 0 0 70px rgba(0, 217, 146, 0.25); }
+      box-shadow: 0 0 30px rgba(0, 217, 146, 0.3),
+                  inset 0 0 30px rgba(0, 217, 146, 0.1);
     }
     
     .hint {
@@ -83,12 +80,12 @@
     
     @keyframes pulse {
       0%, 100% { opacity: 0.3; transform: translateX(-50%) translateY(0); }
-      50% { opacity: 0.8; transform: translateX(-50%) translateY(-5px); }
+      50% { opacity: 0.7; transform: translateX(-50%) translateY(-3px); }
     }
     
     .exit { animation: fadeExit 0.6s forwards; }
     @keyframes fadeExit { 
-      to { opacity: 0; visibility: hidden; transform: scale(1.05); } 
+      to { opacity: 0; visibility: hidden; transform: scale(1.02); } 
     }
   </style>
 </head>
@@ -115,8 +112,10 @@
     document.addEventListener('mousemove', e => {
       cursor.style.left = e.clientX + 'px';
       cursor.style.top = e.clientY + 'px';
-      underlying.style.background = 
-        `radial-gradient(circle 320px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.95) 40%, rgba(5,5,7,0.99) 100%)`;
+      
+      // 更新光圈位置和遮罩
+      underlying.style.setProperty('--mx', e.clientX + 'px');
+      underlying.style.setProperty('--my', e.clientY + 'px');
     });
     
     // 点击淡出
