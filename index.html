@@ -574,6 +574,12 @@
       transform: translate(-50%, -50%); z-index: 2001;
       mix-blend-mode: screen; display: none;
     }
+    .hint {
+      position: absolute; bottom: 50px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px; color: #6b6b78;
+      animation: pulse 2s infinite;
+    }
 
     /* Animations */
     .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s; }
@@ -685,6 +691,7 @@
       <h1>段默文</h1>
       <p>C++ 后端开发者</p>
     </div>
+    <div class="hint">点击任意位置进入网站 ↑</div>
   </div>
 
   <!-- Stats -->
@@ -887,40 +894,46 @@
     const cursorCircle = document.getElementById('cursor');
     let lastScrollY = 0;
     let isLandingVisible = false;
+    let isAtTop = false;
 
     // 鼠标移动更新光圈位置
     document.addEventListener('mousemove', e => {
-      underlyingLayer.style.background = 
+      if (!isLandingVisible || !underlyingLayer) return;
+
+      underlyingLayer.style.background =
         `radial-gradient(circle 280px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.98) 100%)`;
 
       // 显示光标圆圈
-      if (isLandingVisible && cursorCircle) {
+      if (cursorCircle) {
         cursorCircle.style.display = 'block';
         cursorCircle.style.left = e.clientX + 'px';
         cursorCircle.style.top = e.clientY + 'px';
-      } else if (cursorCircle) {
-        cursorCircle.style.display = 'none';
       }
     });
 
     // 点击首页淡出
-    landingOverlay.addEventListener('click', () => {
-      landingOverlay.classList.remove('visible');
-      isLandingVisible = false;
-    });
+    if (landingOverlay) {
+      landingOverlay.addEventListener('click', () => {
+        landingOverlay.classList.remove('visible');
+        isLandingVisible = false;
+        if (cursorCircle) cursorCircle.style.display = 'none';
+      });
+    }
 
-    // 滚动监听
+    // 滚动监听 - 只有从顶部继续上滑时才触发
     window.addEventListener('scroll', () => {
       const currentScrollY = window.scrollY;
+      isAtTop = currentScrollY === 0;
 
-      if (currentScrollY > lastScrollY && currentScrollY > 50 && !isLandingVisible) {
-        // 向上滚动 - 显示首页
+      if (currentScrollY < lastScrollY && isAtTop && !isLandingVisible) {
+        // 向上滚动且在顶部 - 显示首页
         isLandingVisible = true;
-        landingOverlay.classList.add('visible');
-      } else if (currentScrollY <= 0 && isLandingVisible) {
-        // 已在顶部 - 隐藏首页
+        landingOverlay && landingOverlay.classList.add('visible');
+      } else if (currentScrollY > lastScrollY && isLandingVisible) {
+        // 向下滚动 - 隐藏首页
         isLandingVisible = false;
-        landingOverlay.classList.remove('visible');
+        landingOverlay && landingOverlay.classList.remove('visible');
+        if (cursorCircle) cursorCircle.style.display = 'none';
       }
 
       lastScrollY = currentScrollY;
