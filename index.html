@@ -1,17 +1,962 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>段默文 - 主页</title>
+  <title>段默文 — C++ 后端开发者</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script>
-    // 自动跳转到首页
-    window.location.href = 'landing.html';
+    // 检查是否已经进入过网站
+    if (!localStorage.getItem('visited')) {
+      // 首次访问，显示首页
+      window.location.href = 'landing.html';
+    }
   </script>
 </head>
+  <style>
+    /* ─── Theme Variables ─── */
+    :root {
+      /* Dark Theme (default) */
+      --bg-abyss: #050507;
+      --bg-carbon: #0e0e10;
+      --bg-elevated: #16161a;
+      --bg-hover: #1e1e24;
+      --accent-green: #00d992;
+      --accent-cyan: #00b4d8;
+      --text-primary: #f0f0f2;
+      --text-secondary: #a8a8b0;
+      --text-tertiary: #6b6b78;
+      --border: #2a2a2e;
+      --shadow: rgba(0,0,0,0.5);
+      --spotlight-color: rgba(0, 217, 146, 0.15);
+      --nav-bg: rgba(5,5,7,0.9);
+    }
+
+    [data-theme="light"] {
+      --bg-abyss: #f5f5f7;
+      --bg-carbon: #ffffff;
+      --bg-elevated: #f0f0f2;
+      --bg-hover: #e8e8ea;
+      --accent-green: #00a86b;
+      --accent-cyan: #0090b8;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #9a9a9a;
+      --border: #e0e0e2;
+      --shadow: rgba(0,0,0,0.1);
+      --spotlight-color: rgba(0, 168, 107, 0.1);
+      --nav-bg: rgba(245,245,247,0.9);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-abyss);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Theme Toggle ─── */
+    .theme-toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,217,146,0.3);
+    }
+    [data-theme="light"] .theme-toggle::after {
+      transform: translateX(22px);
+    }
+    .theme-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      transition: opacity 0.3s ease;
+    }
+    .theme-icon.sun { left: 6px; opacity: 0; }
+    .theme-icon.moon { right: 6px; opacity: 1; }
+    [data-theme="light"] .theme-icon.sun { opacity: 1; }
+    [data-theme="light"] .theme-icon.moon { opacity: 0; }
+
+    /* ─── Nav ─── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s ease;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .nav-logo span { color: var(--accent-green); }
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text-primary); }
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-cta {
+      padding: 8px 20px;
+      background: var(--accent-green);
+      color: var(--bg-abyss) !important;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px var(--spotlight-color);
+    }
+
+    /* ─── Hero Section with Spotlight ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, var(--spotlight-color), transparent);
+      transition: background 0.3s ease;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+    }
+    .hero-content { position: relative; z-index: 1; }
+
+    /* Spotlight Text Container */
+    .spotlight-container {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .spotlight-base {
+      font-size: clamp(48px, 6vw, 72px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+    .spotlight-reveal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: clamp(48px, 6vw, 72px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--accent-green);
+      letter-spacing: -0.02em;
+      -webkit-mask-image: radial-gradient(circle 80px at var(--x, 50%) var(--y, 50%), black 0%, transparent 70%);
+      mask-image: radial-gradient(circle 80px at var(--x, 50%) var(--y, 50%), black 0%, transparent 70%);
+      pointer-events: none;
+      transition: background 0.3s ease;
+    }
+    [data-theme="light"] .spotlight-reveal {
+      color: var(--accent-green);
+    }
+
+    /* Custom Cursor Circle - only for landing overlay */
+    .cursor-circle {
+      display: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--accent-green-dim, rgba(0,217,146,0.1));
+      border: 1px solid rgba(0,217,146,0.2);
+      border-radius: 9999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent-green);
+      margin-bottom: 24px;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    .hero-subtitle {
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-tertiary);
+    }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: var(--accent-green); color: var(--bg-abyss); }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px var(--spotlight-color);
+    }
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* Code Window */
+    .code-window {
+      background: var(--bg-carbon);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px var(--shadow);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #febc2e; }
+    .code-dot.green { background: #28c840; }
+    .code-title {
+      margin-left: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+    .code-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+    .code-line { display: flex; gap: 16px; }
+    .code-num { color: var(--text-tertiary); user-select: none; }
+    .k { color: #c678dd; } .t { color: #e5c07b; } .f { color: #61afef; }
+    .s { color: #98c379; } .c { color: var(--text-tertiary); font-style: italic; }
+    .n { color: #d19a66; }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 24px;
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Sections */
+    .section { padding: 100px 0; }
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-header h2 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+    .section-header p { color: var(--text-secondary); }
+
+    /* About */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+    .about-tags { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .tag {
+      padding: 6px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .about-info {
+      background: var(--bg-carbon);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-tertiary); font-size: 14px; }
+    .info-value { color: var(--text-primary); font-size: 14px; font-weight: 500; }
+
+    /* Projects */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px,1fr)); gap: 24px; }
+    .project-card {
+      background: var(--bg-carbon);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .project-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0,217,146,0.3);
+      box-shadow: 0 0 30px var(--spotlight-color);
+    }
+    .project-card:hover::before { opacity: 1; }
+    .project-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; }
+    .project-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(0,217,146,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .project-links { display: flex; gap: 12px; }
+    .project-links a { color: var(--text-tertiary); transition: color 0.2s; }
+    .project-links a:hover { color: var(--accent-green); }
+    .project-title { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+    .project-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+    .project-code {
+      background: var(--bg-abyss);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-secondary);
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tech-tag {
+      padding: 4px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-green);
+    }
+
+    /* Skills */
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 20px; }
+    .skill-card {
+      background: var(--bg-carbon);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.25s;
+    }
+    .skill-card:hover {
+      border-color: rgba(0,217,146,0.3);
+      transform: translateY(-2px);
+    }
+    .skill-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .skill-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(0,217,146,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .skill-name { font-weight: 600; }
+    .skill-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .skill-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 12px;
+    }
+    .skill-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+      border-radius: 2px;
+      transition: width 1s;
+    }
+
+    /* Contact */
+    .contact { text-align: center; }
+    .contact h2 { font-size: 48px; margin-bottom: 16px; }
+    .contact p { color: var(--text-secondary); font-size: 18px; margin-bottom: 40px; }
+    .contact-links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 28px;
+      background: var(--bg-carbon);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.25s;
+    }
+    .contact-link:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      transform: translateY(-2px);
+    }
+
+    /* Footer */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+    .footer a { color: var(--accent-green); text-decoration: none; }
+
+    /* ─── Landing Overlay ─── */
+    .landing-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+      background: #050507;
+      transform: translateY(-100%);
+      opacity: 0; visibility: hidden;
+      transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1),
+                  opacity 0.4s ease;
+      cursor: pointer;
+    }
+    .landing-overlay.visible {
+      transform: translateY(0);
+      opacity: 1; visibility: visible;
+    }
+    .landing-overlay .layer {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .landing-overlay .surface-text {
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 700; letter-spacing: -0.02em;
+      color: #1a1a1e;
+    }
+    .landing-overlay .underlying-layer {
+      background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 50%), transparent 0%, rgba(5,5,7,0.98) 100%);
+    }
+    .landing-overlay .underlying-layer h1 {
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #00d992, #00b4d8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .landing-overlay .underlying-layer p { margin-top: 20px; font-size: 20px; color: #6b6b78; }
+    .cursor-circle {
+      position: fixed; width: 180px; height: 180px;
+      border: 2px solid rgba(0, 217, 146, 0.4);
+      border-radius: 50%; pointer-events: none;
+      transform: translate(-50%, -50%); z-index: 2001;
+      mix-blend-mode: screen; display: none;
+    }
+    .hint {
+      position: absolute; bottom: 50px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px; color: #6b6b78;
+      animation: pulse 2s infinite;
+    }
+
+    /* Animations */
+    .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; }
+      .hero-actions { justify-content: center; }
+      .hero-visual { order: -1; }
+      .stats { grid-template-columns: repeat(2,1fr); }
+      .about-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .spotlight-reveal { display: none; }
+      .cursor-circle { display: none; }
+    }
+    @media (max-width: 600px) {
+      .section { padding: 60px 0; }
+      .stats { grid-template-columns: 1fr; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 40px; }
+    }
+  </style>
+</head>
 <body>
-  <p style="text-align:center;margin-top:40vh;color:#6b6b78;">
-    加载中... <a href="landing.html" style="color:#00d992;">点击这里</a>
-  </p>
+  <!-- Custom Cursor -->
+  <div class="cursor-circle" id="cursor"></div>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#home" class="nav-logo">&lt;<span>DM</span>/&gt;</a>
+      <div class="nav-center">
+        <ul class="nav-links">
+          <li><a href="#home">首页</a></li>
+          <li><a href="#about">关于</a></li>
+          <li><a href="#projects">项目</a></li>
+          <li><a href="#skills">技能</a></li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <div class="theme-toggle" id="themeToggle" title="切换主题">
+          <span class="theme-icon sun">☀️</span>
+          <span class="theme-icon moon">🌙</span>
+        </div>
+        <a href="#contact" class="nav-cta">联系我</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content fade-in">
+          <div class="hero-badge">C++ 后端开发者</div>
+          <h1 class="hero-title">你好，我是<br><span class="gradient">段默文</span></h1>
+          <p class="hero-subtitle">
+            汕头大学计算机科学与技术专业在读<br>
+            专注于高性能系统、网络编程与并发架构
+          </p>
+          <div class="hero-meta">
+            <div class="hero-meta-item">📍 东莞市</div>
+            <div class="hero-meta-item">🎓 汕头大学 · 2029届</div>
+            <div class="hero-meta-item">📊 GPA: 3.62/4.0</div>
+          </div>
+          <div class="hero-actions">
+            <a href="#projects" class="btn btn-primary">查看项目 ↓</a>
+            <a href="#contact" class="btn btn-secondary">联系我</a>
+          </div>
+        </div>
+
+        <div class="hero-visual fade-in">
+          <div class="code-window">
+            <div class="code-header">
+              <div class="code-dot red"></div>
+              <div class="code-dot yellow"></div>
+              <div class="code-dot green"></div>
+              <div class="code-title">developer.cpp</div>
+            </div>
+            <div class="code-body">
+              <div class="code-line"><span class="code-num">1</span><span><span class="k">class</span> <span class="t">Developer</span> {</span></div>
+              <div class="code-line"><span class="code-num">2</span><span>  <span class="t">string</span> name = <span class="s">"段默文"</span>;</span></div>
+              <div class="code-line"><span class="code-num">3</span><span>  <span class="t">string</span> role = <span class="s">"C++ Backend"</span>;</span></div>
+              <div class="code-line"><span class="code-num">4</span><span>  <span class="t">int</span> experience = <span class="n">3</span>;</span></div>
+              <div class="code-line"><span class="code-num">5</span><span>  <span class="t">void</span> <span class="f">build</span>() {</span></div>
+              <div class="code-line"><span class="code-num">6</span><span>    <span class="c">// 高性能系统开发中...</span></span></div>
+              <div class="code-line"><span class="code-num">7</span><span>  }</span></div>
+              <div class="code-line"><span class="code-num">8</span><span>};</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Landing Overlay (下拉式首页) -->
+  <div class="landing-overlay" id="landingOverlay">
+    <div class="cursor-circle" id="cursorCircle"></div>
+    <div class="layer">
+      <div class="surface-text">dMo1</div>
+    </div>
+    <div class="layer underlying-layer" id="underlyingLayer">
+      <h1>段默文</h1>
+      <p>C++ 后端开发者</p>
+    </div>
+    <div class="hint">点击任意位置进入网站 ↑</div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+  <div class="container">
+    <div class="stats fade-in">
+      <div class="stat-item"><div class="stat-num" data-target="1000">0</div><div class="stat-label">算法题</div></div>
+      <div class="stat-item"><div class="stat-num" data-target="3">0</div><div class="stat-label">核心项目</div></div>
+      <div class="stat-item"><div class="stat-num" data-target="3">0</div><div class="stat-label">GPA</div></div>
+      <div class="stat-item"><div class="stat-num" data-target="2027">0</div><div class="stat-label">可实习</div></div>
+    </div>
+  </div>
+
+  <!-- About -->
+  <section id="about" class="section">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-content fade-in">
+          <h2>了解我</h2>
+          <p>你好！我是段默文，汕头大学计算机科学与技术专业的大二学生，对底层系统开发有着浓厚的兴趣。</p>
+          <p>我的技术栈主要集中在 C++ 后端开发，尤其擅长高性能网络编程、并发架构和内存管理。我享受从零构建系统的过程，从设计到实现，每一个挑战都让我成长。</p>
+          <div class="about-tags">
+            <span class="tag">C++11/14</span>
+            <span class="tag">Linux</span>
+            <span class="tag">epoll</span>
+            <span class="tag">Reactor</span>
+            <span class="tag">多线程</span>
+            <span class="tag">性能优化</span>
+          </div>
+        </div>
+        <div class="about-info fade-in">
+          <div class="info-row"><span class="info-label">姓名</span><span class="info-value">段默文</span></div>
+          <div class="info-row"><span class="info-label">电话</span><span class="info-value">134 2781 0951</span></div>
+          <div class="info-row"><span class="info-label">邮箱</span><span class="info-value">25mwduan@stu.edu.cn</span></div>
+          <div class="info-row"><span class="info-label">学校</span><span class="info-value">汕头大学</span></div>
+          <div class="info-row"><span class="info-label">毕业</span><span class="info-value">2029年6月</span></div>
+          <div class="info-row"><span class="info-label">现居地</span><span class="info-value">东莞市</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="section" style="background:var(--bg-carbon)">
+    <div class="container">
+      <div class="section-header fade-in">
+        <h2>核心项目</h2>
+        <p>一些我最近在做的项目</p>
+      </div>
+      <div class="projects-grid">
+        <div class="project-card fade-in">
+          <div class="project-header">
+            <div class="project-icon">🧠</div>
+            <div class="project-links"><a href="https://github.com/chijysmile/memory-pool" target="_blank">GitHub →</a></div>
+          </div>
+          <h3 class="project-title">高并发内存池</h3>
+          <p class="project-desc">参考 tcmalloc 实现线程缓存/中心缓存/页缓存三级结构，thread_local 无锁分配。</p>
+          <div class="project-code"><pre>{`struct ThreadCache {
+  alignas(64) spinlock lock;
+  freelist slots[128];
+
+  void* Alloc(size_t size) {
+    auto* slot = slots[size].pop();
+    if (!slot) return CentralFreeList(size);
+    return slot;
+  }
+};`}</pre></div>
+          <div class="tech-tags">
+            <span class="tech-tag">C++11</span>
+            <span class="tech-tag">C++14</span>
+            <span class="tech-tag">tcmalloc</span>
+            <span class="tech-tag">并发</span>
+          </div>
+        </div>
+        <div class="project-card fade-in">
+          <div class="project-header">
+            <div class="project-icon">🌐</div>
+            <div class="project-links"><a href="https://github.com/chijysmile/muduo-network" target="_blank">GitHub →</a></div>
+          </div>
+          <h3 class="project-title">仿 muduo 高并发网络库</h3>
+          <p class="project-desc">基于 Reactor + epoll ET 实现事件驱动网络库，支持线程池和异步日志。</p>
+          <div class="project-code"><pre>{`void EventLoop::loop() {
+  while (!quit_) {
+    auto events = poller_->poll(-1);
+    for (auto& ev : events) {
+      auto* ch = reinterpret_cast<Channel*>(ev.ptr);
+      ch->handleEvent(ev.revents);
+    }
+  }
+}`}</pre></div>
+          <div class="tech-tags">
+            <span class="tech-tag">epoll</span>
+            <span class="tech-tag">Reactor</span>
+            <span class="tech-tag">线程池</span>
+          </div>
+        </div>
+        <div class="project-card fade-in">
+          <div class="project-header">
+            <div class="project-icon">📦</div>
+            <div class="project-links"><a href="https://github.com/chijysmile/pub-sub-mq" target="_blank">GitHub →</a></div>
+          </div>
+          <h3 class="project-title">发布订阅式消息队列</h3>
+          <p class="project-desc">基于 TCP + Protobuf 实现主题路由、多消费者订阅与消息落盘持久化。</p>
+          <div class="project-code"><pre>{`void Broker::dispatch(const Msg& msg) {
+  auto subs = topics_[msg.topic].subscribers;
+  for (auto* sub : subs) {
+    sub->queue.push(msg);
+    sub->notify();  // ACK
+  }
+  persist(msg);
+}`}</pre></div>
+          <div class="tech-tags">
+            <span class="tech-tag">TCP</span>
+            <span class="tech-tag">Protobuf</span>
+            <span class="tech-tag">Pub/Sub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills" class="section">
+    <div class="container">
+      <div class="section-header fade-in">
+        <h2>我的优势</h2>
+        <p>技术栈与核心能力</p>
+      </div>
+      <div class="skills-grid">
+        <div class="skill-card fade-in">
+          <div class="skill-header"><div class="skill-icon">⚡</div><span class="skill-name">C/C++ 开发</span></div>
+          <p class="skill-desc">面向对象、虚函数/虚表、内存管理、STL 底层实现，熟悉 C++11/14 智能指针</p>
+          <div class="skill-bar"><div class="skill-fill" style="width:95%"></div></div>
+        </div>
+        <div class="skill-card fade-in">
+          <div class="skill-header"><div class="skill-icon">🔧</div><span class="skill-name">Linux 系统编程</span></div>
+          <p class="skill-desc">进程/线程、同步互斥、Socket、epoll；熟练使用 gdb、vim、CMake、Git</p>
+          <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
+        </div>
+        <div class="skill-card fade-in">
+          <div class="skill-header"><div class="skill-icon">🧠</div><span class="skill-name">数据结构与算法</span></div>
+          <p class="skill-desc">链表、栈/队列、二叉树、堆、排序、二分、回溯、动态规划</p>
+          <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
+        </div>
+        <div class="skill-card fade-in">
+          <div class="skill-header"><div class="skill-icon">🗄️</div><span class="skill-name">MySQL / Redis</span></div>
+          <p class="skill-desc">索引原理、事务隔离级别、锁机制；Redis 基础数据结构与持久化</p>
+          <div class="skill-bar"><div class="skill-fill" style="width:70%"></div></div>
+        </div>
+        <div class="skill-card fade-in">
+          <div class="skill-header"><div class="skill-icon">🚀</div><span class="skill-name">性能优化</span></div>
+          <p class="skill-desc">内存池、Reactor 模式、线程池、生产者-消费者等高性能架构</p>
+          <div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div>
+        </div>
+        <div class="skill-card fade-in">
+          <div class="skill-header"><div class="skill-icon">📚</div><span class="skill-name">算法刷题</span></div>
+          <p class="skill-desc">累计刷题超过 1000 道（力扣/牛客），维护个人项目与学习笔记</p>
+          <div class="skill-bar"><div class="skill-fill" style="width:95%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="section contact">
+    <div class="container fade-in">
+      <h2>期待与你交流合作</h2>
+      <p>无论是实习机会、技术探讨还是项目合作，欢迎随时联系我。</p>
+      <div class="contact-links">
+        <a href="tel:13427810951" class="contact-link">📱 134 2781 0951</a>
+        <a href="mailto:25mwduan@stu.edu.cn" class="contact-link">✉️ 邮箱</a>
+        <a href="https://github.com/chijysmile" target="_blank" class="contact-link">⭐ GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 段默文 · 汕头大学 · <a href="https://github.com/chijysmile/duanmw01">GitHub</a></p>
+    </div>
+  </footer>
+
+  </div> <!-- end main-content -->
+
+  <script>
+    // ─── Theme Toggle ───
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+
+    // ─── Landing Overlay Logic ───
+    const landingOverlay = document.getElementById('landingOverlay');
+    const underlyingLayer = document.getElementById('underlyingLayer');
+    const cursorCircle = document.getElementById('cursorCircle');
+    let lastScrollY = 0;
+    let isLandingVisible = false;
+
+    // 鼠标移动更新光圈位置
+    document.addEventListener('mousemove', e => {
+      if (!isLandingVisible || !underlyingLayer) return;
+
+      underlyingLayer.style.background =
+        `radial-gradient(circle 280px at ${e.clientX}px ${e.clientY}px, transparent 0%, rgba(5,5,7,0.98) 100%)`;
+
+      // 显示光标圆圈
+      if (cursorCircle) {
+        cursorCircle.style.display = 'block';
+        cursorCircle.style.left = e.clientX + 'px';
+        cursorCircle.style.top = e.clientY + 'px';
+      }
+    });
+
+    // 点击首页淡出
+    landingOverlay.addEventListener('click', () => {
+      landingOverlay.classList.remove('visible');
+      isLandingVisible = false;
+      if (cursorCircle) cursorCircle.style.display = 'none';
+    });
+
+    // 滚动监听 - 只有从顶部继续上滑时才触发
+    window.addEventListener('scroll', () => {
+      const currentScrollY = window.scrollY;
+
+      if (!isLandingVisible) {
+        // 首页未显示时：向上滚动到顶部且继续上滑
+        if (currentScrollY < lastScrollY && currentScrollY === 0) {
+          isLandingVisible = true;
+          landingOverlay.classList.add('visible');
+        }
+      } else {
+        // 首页显示时：向下滚动则收起
+        if (currentScrollY > lastScrollY) {
+          isLandingVisible = false;
+          landingOverlay.classList.remove('visible');
+          cursorCircle.style.display = 'none';
+        }
+      }
+
+      lastScrollY = currentScrollY;
+    });
+
+    // ─── Intersection Observer for fade-in ───
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // ─── Counter animation ───
+    function animateCounters() {
+      document.querySelectorAll('.stat-num').forEach(el => {
+        const target = parseInt(el.dataset.target);
+        let current = 0;
+        const step = target / 60;
+        const timer = setInterval(() => {
+          current += step;
+          if (current >= target) {
+            el.textContent = target + (target === 1000 ? '+' : target === 2027 ? '' : '/4.0');
+            clearInterval(timer);
+          } else { el.textContent = Math.floor(current); }
+        }, 30);
+      });
+    }
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { animateCounters(); statsObserver.disconnect(); } });
+    }, { threshold: 0.5 });
+    const statsEl = document.querySelector('.stats');
+    if (statsEl) statsObserver.observe(statsEl);
+
+    // ─── Smooth scroll ───
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        target && target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
 </body>
 </html>

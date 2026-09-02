@@ -118,8 +118,9 @@
       underlying.style.setProperty('--my', e.clientY + 'px');
     });
     
-    // 点击淡出
+    // 点击淡出 - 设置访问标志
     landing.addEventListener('click', () => {
+      localStorage.setItem('visited', 'true');
       landing.classList.add('exit');
       setTimeout(() => {
         landing.style.display = 'none';
